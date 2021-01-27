@@ -30,9 +30,7 @@ result_fields = ['h_id',
                  'prize',
                  'ai_equity',
                  'icm_ev_diff_cur',
-                 'icm_ev_cur',
                  'icm_ev_diff',
-                 'icm_ev',
                  'chip_ev_diff',
                  'chip_won',
                  'dt',
@@ -51,7 +49,6 @@ class CalcResultsReport:
     def __init__(self) -> None:
         self.ai_equity = 0
         self.total_won = 0
-        self.icm_ev = 0
         self.icm_evdiff = 0
         self.chip_won = 0
         self.chip_evdiff = 0
@@ -63,7 +60,6 @@ class CalcResultsReport:
     def add_result(self, cr: CalcResults) -> None:
         self.ai_equity += cr.ai_equity
         self.total_won += cr.won_amount
-        self.icm_ev += cr.icm_ev_cur
         self.icm_evdiff += cr.icm_ev_diff_cur
         self.chip_won += cr.chip_won
         self.chip_evdiff += cr.chip_ev_diff
@@ -75,7 +71,6 @@ class CalcResultsReport:
                                   'hero_cards': cr.hero_cards,
                                   'ai_equity': cr.ai_equity,
                                   'won_amount': cr.won_amount,
-                                  'icm_ev_cur': cr.icm_ev_cur,
                                   'icm_ev_diff_cur': cr.icm_ev_diff_cur,
                                   'chip_won': cr.chip_won,
                                   'chip_ev_diff': cr.chip_ev_diff,
@@ -93,7 +88,6 @@ class CalcResultsReport:
         report = []
         report.append(f'avg all in eq: {avg_ai_equity}')
         report.append(f'total won: {self.total_won}')
-        report.append(f'ICM EV: {self.icm_ev}')
         report.append(f'ICM EV diff: {self.icm_evdiff}')
         report.append(f' Chip won: {self.chip_won}')
         report.append(f'Chip EV diff: {self.chip_evdiff}')
@@ -109,7 +103,7 @@ class CalcResultsReport:
         :returns: True if success
         """
         fieldnames = ['t_id', 'h_id', 'hero_cards',
-                      'ai_equity', 'won_amount', 'icm_ev_cur',
+                      'ai_equity', 'won_amount',
                       'icm_ev_diff_cur', 'chip_won', 'chip_ev_diff', 'bi']
         try:
             with open(file_path, mode='w', encoding='utf-8') as f:
@@ -155,9 +149,7 @@ def get_calc_results(hand_text: str) -> CalcResults:
         ev_calc.calc(hero)
         ai_equity = round(ev_calc.get_probs(hero), 4) * 100
         icm_ev_diff_cur = round(ev_calc.icm_ev_diff(), 2)
-        icm_ev_cur = round(ev_calc.icm_ev(), 2)
         icm_ev_diff = round(ev_calc.icm_ev_diff_pct(), 4) * 100
-        icm_ev = round(ev_calc.icm_ev_pct(), 4) * 100
         chip_ev_diff = round(ev_calc.chip_diff_ev_adj(), 0)
         chip_won = ev_calc.chip_net_won().get(hero, 0)
         won_amount = round(parsed_hand.prize_won.get(hero, 0), 2)
@@ -171,9 +163,7 @@ def get_calc_results(hand_text: str) -> CalcResults:
                      prize=get_prize_structure(parsed_hand),
                      ai_equity=ai_equity,
                      icm_ev_diff_cur=icm_ev_diff_cur,
-                     icm_ev_cur=icm_ev_cur,
                      icm_ev_diff=icm_ev_diff,
-                     icm_ev=icm_ev,
                      chip_ev_diff=chip_ev_diff,
                      chip_won=chip_won,
                      won_amount=won_amount,
@@ -194,8 +184,6 @@ def format_calc_results(cr: CalcResults) -> str:
     result.append(f'chip won: {cr.chip_won}')
     result.append(f'icm diff pct: {cr.icm_ev_diff} %')
     result.append(f'icm diff $ : {cr.icm_ev_diff_cur}')
-    result.append(f'icm pct: {cr.icm_ev} %')
-    result.append(f'icm $: {cr.icm_ev_cur}')
     result.append(f'won $: {cr.won_amount}')
     result = '\n'.join(result)
     return result
