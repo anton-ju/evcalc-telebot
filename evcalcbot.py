@@ -89,15 +89,17 @@ class CalcResultsReport:
             avg_ai_equity = self.ai_equity / self.ai_hands_count
         else:
             avg_ai_equity = 0
-        total_bi = sum([t[1] for t in list(self.tournaments_set)]) / len(self.tournaments_set)
+        total_bi = sum([t[1] for t in list(self.tournaments_set)])
+        avg_bi = total_bi / len(self.tournaments_set)
         report = []
         report.append(f'avg all in eq: {avg_ai_equity}')
-        report.append(f'total won: {self.total_won}')
+        report.append(f'total won: {self.total_won - total_bi}')
         report.append(f'ICM EV diff: {self.icm_evdiff}')
         report.append(f'Chip won: {self.chip_won}')
         report.append(f'Chip won adj: {self.chip_won_adj}')
         report.append(f'Chip EV diff: {self.chip_evdiff}')
         report.append(f'Total BI: {total_bi}')
+        report.append(f'Avg BI: {avg_bi}')
         report.append(f'Total hands: {self.hands_count}')
         report.append(f'Total tounrnaments: {len(self.tournaments_set)}')
 
