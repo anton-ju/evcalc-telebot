@@ -71,6 +71,7 @@ class CalcResultsReport:
         self.tournaments_set.add((cr.t_id, cr.bi))
         self.results_list.append({'t_id': cr.t_id,
                                   'h_id': cr.h_id,
+                                  'dt': cr.dt,
                                   'hero_cards': cr.hero_cards,
                                   'ai_equity': cr.ai_equity,
                                   'won_amount': cr.won_amount,
@@ -107,7 +108,7 @@ class CalcResultsReport:
         :file_path: path to file
         :returns: True if success
         """
-        fieldnames = ['t_id', 'h_id', 'hero_cards',
+        fieldnames = ['t_id', 'h_id', 'dt', 'hero_cards',
                       'ai_equity', 'won_amount',
                       'icm_ev_diff_cur', 'chip_won', 'chip_won_adj', 'chip_ev_diff', 'bi']
         try:
