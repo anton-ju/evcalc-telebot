@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
+database = os.getenv("database"),
+user = os.getenv("user"),
+password = os.getenv("password"),
+host = os.getenv("host"),
 DOWNLOADS_DIR = 'downloads'
 Messages = {
     'WELCOME': "Посчитаю твое EV БЕСплатно, без СМС и регистрации \n" \

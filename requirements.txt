@@ -8,7 +8,7 @@ idna==2.10
 numpy==1.16.2
 pyparsing==2.4.7
 pyTelegramBotAPI==3.7.3
-psycopg2==2.8.6
+psycopg2-binary==2.8.6
 requests==2.24.0
 six==1.15.0
 soupsieve==2.0.1

@@ -22,6 +22,8 @@ import logging
 import zipfile
 import tempfile
 import pdb
+import db
+
 
 logger = logging.getLogger(__name__)
 CWD = Path.cwd()
@@ -333,6 +335,9 @@ def text_doc_handler(message):
     txt = download(doc.file_id).decode()
     cr, reply, file_name = process_hh(txt)
     bot.send_message(message.chat.id, reply)
+
+    #write into DB
+    db.insert_values(cr)
 
     markup = types.ReplyKeyboardMarkup(selective=True, resize_keyboard=True)
     itembtn1 = types.KeyboardButton(Answers['CORRECT'])
