@@ -5,7 +5,6 @@ CREATE DATABASE PD
     CONNECTION LIMIT = -1;
 
 CREATE TABLE EvCalc (
-	--ec_id			int PRIMARY KEY,
 	date			timestamp,
     table_id		bigint,
 	hand_id			bigint,
@@ -22,5 +21,5 @@ CREATE TABLE EvCalc (
 
 CREATE INDEX "TableHandHero"
     ON public.evcalc USING btree
-    (date ASC NULLS LAST, hero ASC NULLS LAST)
+    (table_id ASC NULLS LAST, hand_id ASC NULLS LAST, hero ASC NULLS LAST)
 ;

@@ -23,7 +23,8 @@ import zipfile
 import tempfile
 import pdb
 import db
-
+import psycopg2
+from config import database, user, password, host
 
 logger = logging.getLogger(__name__)
 CWD = Path.cwd()
@@ -42,7 +43,7 @@ result_fields = ['h_id',
                  'won_amount',
                  't_id'
                  ]
-
+con = psycopg2.connect(database=database[0], user=user[0], password=password[0], host=host[0])
 
 
 CalcResults = namedtuple('CalcResults', result_fields)
@@ -336,8 +337,8 @@ def text_doc_handler(message):
     cr, reply, file_name = process_hh(txt)
     bot.send_message(message.chat.id, reply)
 
-    #write into DB
-    db.insert_values(cr)
+    # write into DB
+    db.edit(con, cr)
 
     markup = types.ReplyKeyboardMarkup(selective=True, resize_keyboard=True)
     itembtn1 = types.KeyboardButton(Answers['CORRECT'])
