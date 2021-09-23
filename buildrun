@@ -1,0 +1,6 @@
+sudo docker stop bot
+sudo docker rm bot
+sudo docker image rm evcalc
+git pull
+sudo docker build --tag evcalc .
+sudo docker run -d --name bot evcalc
