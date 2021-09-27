@@ -15,7 +15,7 @@ from typing import Tuple
 import traceback
 import sys
 from enum import Enum
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import time
 from mimetypes import guess_type
 import logging
@@ -49,24 +49,38 @@ CalcResults = namedtuple('CalcResults', result_fields)
 class CalcResultsReport:
     def __init__(self) -> None:
         self.ai_equity = 0
+        self.t_ai_equity = defaultdict(int)
         self.total_won = 0
+        self.t_total_won = defaultdict(int)
         self.icm_evdiff = 0
+        self.t_icm_evdiff = defaultdict(int)
         self.chip_won = 0
+        self.t_chip_won = defaultdict(int)
         self.chip_won_adj = 0
+        self.t_chip_won_adj = defaultdict(int)
         self.chip_evdiff = 0
+        self.t_chip_evdiff = defaultdict(int)
         self.hands_count = 0
+        self.t_hands_count = defaultdict(int)
         self.ai_hands_count = 0
         self.tournaments_set = set()
         self.results_list = []
 
     def add_result(self, cr: CalcResults) -> None:
         self.ai_equity += cr.ai_equity
+        self.t_ai_equity[(cr.t_id, cr.bi)] += cr.ai_equity
         self.total_won += cr.won_amount
+        self.t_total_won[(cr.t_id, cr.bi)] += cr.won_amount
         self.icm_evdiff += cr.icm_ev_diff_cur
+        self.t_icm_evdiff[(cr.t_id, cr.bi)] += cr.icm_ev_diff
         self.chip_won += cr.chip_won
+        self.t_chip_won[(cr.t_id, cr.bi)] += cr.chip_won
         self.chip_won_adj += cr.chip_won_adj
+        self.t_chip_won_adj[(cr.t_id, cr.bi)] += cr.chip_won_adj
         self.chip_evdiff += cr.chip_ev_diff
+        self.t_chip_evdiff[(cr.t_id, cr.bi)] += cr.chip_ev_diff
         self.hands_count += 1
+        self.t_hands_count[(cr.t_id, cr.bi)] += 1
         self.ai_hands_count += 1 if cr.ai_equity else 0
         self.tournaments_set.add((cr.t_id, cr.bi))
         self.results_list.append({'t_id': cr.t_id,
@@ -125,6 +139,32 @@ class CalcResultsReport:
             return False
         return True
 
+    def save_by_tournament_csv(self, file_path) -> bool:
+        """save report to file_path
+        :file_path: path to file
+        :returns: True if success
+        """
+        fieldnames = ['t_id', 'dt', 'bi', 'won_amount', 'icm_ev_diff_cur', 'chip_won', 'chip_won_adj', 'chip_ev_diff',]
+        try:
+            with open(file_path, mode='w', encoding='utf-8') as f:
+                csv_writer = csv.DictWriter(f, fieldnames=fieldnames)
+                csv_writer.writeheader()
+
+                for t in self.tournaments_set:
+                    row = {fieldnames[0]: t[0],
+                           fieldnames[1]: 0,
+                           fieldnames[2]: t[1],
+                           fieldnames[3]: self.t_total_won[t],
+                           fieldnames[4]: self.t_icm_evdiff[t],
+                           fieldnames[5]: self.t_chip_won[t],
+                           fieldnames[6]: self.t_chip_won_adj[t],
+                           fieldnames[7]: self.t_chip_evdiff[t],
+                           }
+                    csv_writer.writerow(row)
+
+        except Exception as e:
+            return False
+        return True
 
 output_dir_path = CWD.joinpath(DOWNLOADS_DIR)
 if not output_dir_path.exists():
@@ -161,7 +201,8 @@ def get_calc_results(hand_text: str) -> CalcResults:
         chip_ev_diff = round(ev_calc.chip_diff_ev_adj(), 0)
         chip_won = ev_calc.chip_net_won().get(hero, 0)
         chip_won_adj = chip_ev_diff + chip_won
-        won_amount = round(parsed_hand.prize_won.get(hero, 0), 2)
+        won_amount = round(ev_calc.calculate_prize(), 2)
+        # won_amount = round(parsed_hand.prize_won.get(hero, 0), 2)
     except Exception as e:
         logger.exception(f"Exception", exc_info=sys.exc_info())
     rc = CalcResults(dt=parsed_hand.datetime,
@@ -320,6 +361,15 @@ def zip_doc_handler(message):
     file_path = output_dir_path.joinpath(fn)
 
     if calc_report.save_csv(file_path):
+        with open(file_path, 'r') as f:
+            bot.send_document(message.chat.id, f)
+    else:
+        bot.send_message(message.chat.id, "Unable to send csv file", reply_markup=keyboard_remove)
+
+    fn = get_uniq_id() + '.csv'
+    file_path = output_dir_path.joinpath(fn)
+
+    if calc_report.save_by_tournament_csv(file_path):
         with open(file_path, 'r') as f:
             bot.send_document(message.chat.id, f)
     else:
